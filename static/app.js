@@ -1,13 +1,16 @@
-// In app.js (create a separate JavaScript file)
-
 const accountSelect = document.getElementById('account_select');
 const updateForm = document.getElementById('updateForm');
 const accountNameInput = document.getElementById('account_name');
 const balanceInput = document.getElementById('balance');
+const balanceChart = document.getElementById('balanceChart').getContext('2d');
 
-// Fetch initial account list and populate dropdown
-fetch('/accounts') 
-    .then(response => response.json())
+fetch('/accounts')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(accounts => {
         accounts.forEach(account => {
             const option = document.createElement('option');
@@ -16,17 +19,65 @@ fetch('/accounts')
             accountSelect.appendChild(option);
         });
 
-        // Handle account selection
         accountSelect.addEventListener('change', () => {
             const selectedAccount = accountSelect.value;
             accountNameInput.value = selectedAccount; 
             updateForm.style.display = 'block'; 
         });
+    })
+    .catch(error => {
+        console.error('Error fetching accounts:', error);
+        // Display an error message to the user (e.g., using an alert)
     });
 
-// ... (rest of your Chart.js code)
+fetch('/data')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        const datasets = [];
 
-// Handle form submission (update balance)
+        for (const account in data) {
+            datasets.push({
+                label: account,
+                data: data[account].y,
+                xLabels: data[account].x,
+                borderColor: getRandomColor(),
+                fill: false
+            });
+        }
+
+        const myChart = new Chart(balanceChart, {
+            type: 'line',
+            data: {
+                datasets: datasets
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            parser: 'YYYY-MM-DD', 
+                            unit: 'day', 
+                            displayFormats: {
+                                day: 'MMM D' 
+                            }
+                        },
+                        stacked: true 
+                    },
+                    y: { stacked: true }
+                }
+            }
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching chart data:', error);
+        // Handle the error (e.g., display an error message)
+    });
+
 updateForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const accountName = accountNameInput.value;
@@ -39,9 +90,40 @@ updateForm.addEventListener('submit', (event) => {
         },
         body: JSON.stringify({ account_name: accountName, balance: balance })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
-        // Update chart (you might need to refresh the chart data)
-        // ... (your chart updating logic)
+        // Refresh chart data
+        fetch('/data')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(newData => {
+                // Update Chart.js data
+                myChart.data.datasets.forEach((dataset, index) => {
+                    if (dataset.label === accountName) {
+                        dataset.data.push(newData[accountName].y[newData[accountName].y.length - 1]);
+                        dataset.xLabels.push(newData[accountName].x[newData[accountName].x.length - 1]);
+                    }
+                });
+                myChart.update(); 
+            })
+            .catch(error => {
+                console.error('Error refreshing chart data:', error);
+                // Handle the error (e.g., display an error message)
+            });
+    })
+    .catch(error => {
+        console.error('Error updating balance:', error);
+        // Handle the error (e.g., display an error message)
     });
 });
+
+function getRandom
