@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import sqlite3
 import datetime
+import moment  # Added for date parsing
 
 app = Flask(__name__)
 DATABASE = 'balances.db'  # SQLite database file
@@ -24,6 +25,13 @@ def create_table():
     conn.close()
 
 create_table() # Create table if not exists
+
+@app.route('/accounts')
+def get_accounts():
+    conn = get_db_connection()
+    accounts = conn.execute('SELECT DISTINCT account_name FROM balances').fetchall()
+    conn.close()
+    return jsonify(accounts)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -55,7 +63,9 @@ def data():
     for row in data:
         if row['account_name'] not in chart_data:
             chart_data[row['account_name']] = {'x': [], 'y': []}
-        chart_data[row['account_name']]['x'].append(row['date'])
+        # Use moment.js for date parsing (assuming YYYY-MM-DD format)
+        parsed_date = moment(row['date'], "YYYY-MM-DD").format()  
+        chart_data[row['account_name']]['x'].append(parsed_date)
         chart_data[row['account_name']]['y'].append(row['balance'])
     return jsonify(chart_data)
 
