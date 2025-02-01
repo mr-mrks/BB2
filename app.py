@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import sqlite3
 import datetime
 import moment  # Added for date parsing
+from dataclasses import asdict
 
 app = Flask(__name__)
 DATABASE = 'balances.db'  # SQLite database file
@@ -25,6 +26,14 @@ def create_table():
     conn.close()
 
 create_table() # Create table if not exists
+
+def data():
+    # ... (rest of your code)
+    chart_data = {}
+    for row in data:
+        data_dict = asdict(row)  # Convert Row object to dictionary using asdict
+        # ... (rest of your code)
+    return jsonify(chart_data)
 
 @app.route('/accounts')
 def get_accounts():
