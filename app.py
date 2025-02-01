@@ -40,7 +40,7 @@ def get_accounts():
     conn = get_db_connection()
     accounts = conn.execute('SELECT DISTINCT account_name FROM balances').fetchall()
     conn.close()
-    return jsonify(accounts)
+    return jsonify([{'account_name': row['account_name']} for row in accounts])
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
