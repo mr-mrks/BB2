@@ -69,7 +69,7 @@ def data():
         for row in data:
             data_dict = dict(row)
             if data_dict['account_name'] not in chart_data:
-                chart_data[data_dict['account_name']] = {'x':, 'y':}
+                chart_data[data_dict['account_name']] = {'x':[], 'y':[]}
             parsed_date = moment(data_dict['date'], "YYYY-MM-DD").format() 
             chart_data[data_dict['account_name']]['x'].append(parsed_date)
             chart_data[data_dict['account_name']]['y'].append(data_dict['balance'])
