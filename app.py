@@ -7,9 +7,14 @@ app = Flask(__name__)
 DATABASE = 'balances.db'
 
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
+    try:
+        conn = sqlite3.connect(DATABASE)
+        print("Connected to database")  # Add this line
+        conn.row_factory = sqlite3.Row
+        return conn
+    except sqlite3.Error as e:
+        print(f"Error connecting to database: {e}")
+        return None 
 
 def create_table():
     conn = get_db_connection()
