@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Balance Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> </head>
+<body>
+    <h1>Balance Tracker</h1>
+
+    <form method="POST">
+        <label for="account_name">Account Name:</label>
+        <input type="text" name="account_name" required><br><br>
+
+        <label for="balance">Balance:</label>
+        <input type="number" name="balance" step="0.01" required><br><br>
+
+        <input type="submit" value="Update">
+    </form>
+
+    <canvas id="balanceChart"></canvas>
+
+    <script>
+        fetch('/data')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('balanceChart').getContext('2d');
+            const datasets = [];
+
+            for (const account in data) {
+                datasets.push({
+                    label: account,
+                    data: data[account].y,
+                    xLabels: data[account].x,
+                    borderColor: getRandomColor(), // Function to generate random colors
+                    fill: false // For stacked line chart
+                });
+            }
+
+            new Chart(ctx, {
+                type: 'line', // Stacked line chart
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    scales: {
+                        x: { type: 'time' }, // Time scale for x-axis
+                        y: { stacked: true } // Stacked y-axis
+                    }
+                }
+            });
+        });
+
+        function getRandomColor() { // Simple color generation
+            const r = Math.floor(Math.random() * 256);
+            const g = Math.floor(Math.random() * 256);
+            const b = Math.floor(Math.random() * 256);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+    </script>
+</body>
+</html>
