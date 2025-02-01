@@ -74,6 +74,8 @@ def data():
             chart_data[data_dict['account_name']]['x'].append(parsed_date)
             chart_data[data_dict['account_name']]['y'].append(data_dict['balance'])
         return jsonify(chart_data)
+    except sqlite3.Error as e: 
+        return jsonify({'error': f'Database error: {e}'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
